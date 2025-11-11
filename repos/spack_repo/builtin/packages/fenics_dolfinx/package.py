@@ -18,6 +18,9 @@ class FenicsDolfinx(CMakePackage):
     license("LGPL-3.0-or-later")
 
     version("main", branch="main", no_cache=True)
+    version(
+        "0.10.0.post2", sha256="eae83794fee8141c80c59c03a2f4ac208af2b62c8f36e5d19c93e0d279029f52"
+    )
     version("0.9.0", sha256="b266c74360c2590c5745d74768c04568c965b44739becca4cd6b5aa58cdbbbd1")
     version("0.8.0", sha256="acf3104d9ecc0380677a6faf69eabfafc58d0cce43f7777e1307b95701c7cad9")
     with default_args(deprecated=True):
@@ -43,6 +46,8 @@ class FenicsDolfinx(CMakePackage):
 
     depends_on("c", type="build")  # HDF5 dependency requires C in CMake config
     depends_on("cxx", type="build")
+
+    conflicts("%gcc@:13", when="@0.10:")
 
     # Graph partitioner dependencies
     depends_on("kahip@3.12:", when="partitioners=kahip")
@@ -70,6 +75,11 @@ class FenicsDolfinx(CMakePackage):
 
     depends_on("adios2@2.8.1:+mpi", when="@0.9: +adios2")
     depends_on("adios2+mpi", when="+adios2")
+
+    depends_on("fenics-ufcx@0.10.0:", when="@0.10.0:")
+    depends_on("fenics-basix@0.10.0:", when="@0.10.0:")
+    depends_on("py-fenics-ffcx@0.10.1:", when="@0.10.0:")
+
     for ver in ("main", "0.9", "0.8", "0.7", "0.6"):
         depends_on(f"fenics-ufcx@{ver}", when=f"@{ver}")
         depends_on(f"fenics-basix@{ver}", when=f"@{ver}")
@@ -80,6 +90,7 @@ class FenicsDolfinx(CMakePackage):
 
     def cmake_args(self):
         return [
+            self.define_from_variant("CMAKE_BUILD_TYPE", "build_type"),
             self.define("DOLFINX_SKIP_BUILD_TESTS", True),
             self.define_from_variant("DOLFINX_ENABLE_PETSC", "petsc"),
             self.define_from_variant("DOLFINX_ENABLE_SLEPC", "slepc"),
